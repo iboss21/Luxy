@@ -1,4 +1,3 @@
-```markdown
 # Self-Hosted AI Coding Agent
 
 Welcome to the **Self-Hosted AI Coding Agent** project! This guide walks you through setting up a powerful, AI-driven coding environment on your own hardware. Think of it as your personal, local version of Replit, Cursor, or GitHub Codespaces—no cloud, no subscriptions, just your machine doing the work.
