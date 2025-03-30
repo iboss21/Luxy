@@ -1,9 +1,3 @@
-Here’s the full guide rewritten as a Reddit post, ready to copy-paste directly into Reddit. It’s concise, engaging, and formatted with Reddit’s markdown in mind. Enjoy!
-
----
-
-Hey r/selfhosted, r/homelab, and r/webdev!  
-
 I’ve been tinkering with something cool and figured I’d share it with you all: a **self-hosted AI coding agent** running 100% on your own hardware. Imagine a local version of Replit, Cursor, or GitHub Codespaces—except it’s free, private, and you can tweak it however you want. No cloud nonsense, no API fees, just your machine flexing its muscles.  
 
 In this post, I’ll walk you through building it step-by-step. By the end, you’ll have a web-based coding setup with AI-powered code generation, debugging, autocomplete, and project management—all local. I built this on a beefy rig (i9-9900K, RTX 4070 SUPER, 64GB RAM, 2TB SSD), but you can adapt it to similar hardware.  
