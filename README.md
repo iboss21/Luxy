@@ -289,4 +289,3 @@ Add autocomplete and project templates:
 ---
 
 You’ve now got a self-hosted AI coding agent! Customize it, expand it, or enjoy coding with your own AI assistant. For issues or ideas, open an issue or PR. Happy coding!
-```
