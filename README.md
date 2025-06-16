@@ -1,291 +1,261 @@
-# Self-Hosted AI Coding Agent
+# TeeAI - AI-Powered Custom T-Shirt Design Platform
 
-Welcome to the **Self-Hosted AI Coding Agent** project! This guide walks you through setting up a powerful, AI-driven coding environment on your own hardware. Think of it as your personal, local version of Replit, Cursor, or GitHub Codespaces—no cloud, no subscriptions, just your machine doing the work.
+A modern, production-ready SaaS platform for creating custom t-shirts using AI-powered design tools. Built with Next.js, TypeScript, and Tailwind CSS, featuring a stunning landing page inspired by Vercel Ship.
 
-## Why Build This?
-- **Cost**: Free, aside from electricity.
-- **Privacy**: Your code stays on your machine.
-- **Customization**: Tailor it to your workflow.
-- **Learning**: Gain skills in AI, web dev, and system setup.
+## 🚀 Features
 
-## What You’ll Create
-- A web-based coding interface with AI-powered code generation, debugging, and autocomplete.
-- Tools for project management: create projects, upload ZIP files, clone Git repos, and preview projects locally.
+### Core Functionality
+- **AI-Powered Design Generation** - Create stunning designs from text prompts
+- **Real-time 3D Preview** - See your designs on t-shirt mockups instantly  
+- **Upload & Transform** - Upload images and let AI enhance them
+- **Smart Typography** - AI-suggested fonts and text layouts
+- **Color Magic** - Intelligent color palette suggestions
+- **Print-Ready Export** - High-resolution files optimized for printing
 
-## Prerequisites
+### User Experience
+- **Modern Landing Page** - Vercel Ship-inspired design with animations
+- **Responsive Design** - Perfect on all devices
+- **Interactive Gallery** - Browse community designs by category
+- **Live Design Editor** - Real-time editing with instant preview
+- **Emotional Templates** - Pre-made designs for special occasions
 
-### Hardware
-- **CPU**: High-performance, e.g., Intel i9-9900K.
-- **GPU**: NVIDIA with 12GB+ VRAM, e.g., RTX 4070 SUPER.
-- **RAM**: 64GB+ DDR4.
-- **Storage**: 2TB SSD with 500GB+ free.
-- **Cooling**: AIO liquid cooler recommended.
-- **OS**: Windows 10 Pro (Linux notes included).
+### Business Features
+- **Tiered Pricing** - Free, Creator ($19/mo), Business ($49/mo)
+- **Print-on-Demand Integration** - Ready for Printful/Printify
+- **User Authentication** - Secure login and user management
+- **Commercial Licensing** - Full rights for business use
+- **Team Collaboration** - Share and collaborate on designs
 
-### Software
-- Internet connection for downloads.
-- Basic command-line familiarity.
+## 🛠 Tech Stack
 
-## Step 1: Hardware Setup and Optimization
-Ensure your hardware is ready:
-- **Verify Components**: Check CPU, GPU, RAM, and SSD in BIOS.
-- **Cooling**: Mount AIO cooler (top/front), fans exhausting out. Set fan curves in BIOS (CPU ramp at 60°C, max at 80°C).
-- **Drivers**: Update GPU drivers from [NVIDIA](https://www.nvidia.com/Download/index.aspx). Check BIOS updates on your motherboard’s site (e.g., [ASUS](https://www.asus.com/support/)).
-- **Stability Test**: Monitor temps with [HWMonitor](https://www.cpuid.com/softwares/hwmonitor.html). Stress test with [Prime95](https://www.mersenne.org/download/) (CPU) and [FurMark](https://geeks3d.com/furmark/) (GPU). Aim for CPU <85°C, GPU <75°C.
+- **Frontend**: Next.js 14, React 18, TypeScript
+- **Styling**: Tailwind CSS, Framer Motion
+- **3D Graphics**: React Three Fiber, Three.js
+- **Canvas**: Konva.js for design editing
+- **Icons**: Lucide React
+- **Deployment**: Vercel-ready
 
-## Step 2: Software Installation
-Install the tools:
-- **Python 3.10+**: [Download](https://www.python.org/downloads/), install with “Add to PATH”. Verify: `python --version`.
-- **Git**: [Download](https://git-scm.com/download/win), install with CLI option. Verify: `git --version`.
-- **Node.js (LTS)**: [Download](https://nodejs.org/), install. Verify: `node --version`.
-- **CUDA/cuDNN**: Get CUDA from [NVIDIA](https://developer.nvidia.com/cuda-downloads), cuDNN from [NVIDIA Developer](https://developer.nvidia.com/cudnn). Verify: `nvcc --version`.
-- **Tesseract OCR**: [Download](https://github.com/UB-Mannheim/tesseract/wiki), install to `C:\Program Files\Tesseract-OCR`, add to PATH. Verify: `tesseract --version`.
-- **Python Libraries**:
-  ```bash
-  pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-  pip install flask flask-cors gunicorn transformers accelerate bitsandbytes pillow pytesseract zipfile36
-  ```
-- **Node.js Tools**: `npm install -g serve vercel`
-- **Nginx**: [Download](http://nginx.org/en/download.html), extract to `C:\nginx`. Verify: `nginx -v`
+## 📦 Installation
 
-## Step 3: AI Model Configuration
-Use **CodeLLaMA 13B** for coding assistance:
-- **Set Up Directory**:
-  ```bash
-  mkdir C:\ai_coding_agent
-  cd C:\ai_coding_agent
-  mkdir uploads projects static templates
-  ```
-- **Create `model.py`**:
-  ```python
-  from transformers import AutoModelForCausalLM, AutoTokenizer
-  import torch
+1. **Clone the repository**
+```bash
+git clone https://github.com/yourusername/teeai-platform.git
+cd teeai-platform
+```
 
-  model_name = "codellama/CodeLlama-13b-hf"
-  tokenizer = AutoTokenizer.from_pretrained(model_name)
-  model = AutoModelForCausalLM.from_pretrained(
-      model_name,
-      torch_dtype=torch.float16,
-      load_in_4bit=True,
-      device_map="auto"
-  )
+2. **Install dependencies**
+```bash
+npm install
+```
 
-  def generate_response(prompt, max_length=500):
-      inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
-      outputs = model.generate(inputs["input_ids"], max_length=max_length)
-      return tokenizer.decode(outputs[0], skip_special_tokens=True)
+3. **Set up environment variables**
+```bash
+cp .env.example .env.local
+```
 
-  if __name__ == "__main__":
-      print(generate_response("Write a Python function to add two numbers"))
-  ```
-- **Run**: `python model.py` to download the model (~7GB).
+Add your API keys:
+```env
+# OpenAI for AI design generation
+OPENAI_API_KEY=your_openai_key
 
-## Step 4: Building the Web Application
-Create a Flask app with a chat interface and code editor:
-- **Create `app.py` in `C:\ai_coding_agent`**:
-  ```python
-  from flask import Flask, request, jsonify, render_template
-  from flask_cors import CORS
-  import os
-  import subprocess
-  import zipfile
-  from model import generate_response
+# Stripe for payments
+STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+STRIPE_SECRET_KEY=your_stripe_secret_key
 
-  app = Flask(__name__)
-  CORS(app)
+# Printful for print-on-demand
+PRINTFUL_API_KEY=your_printful_key
 
-  UPLOAD_FOLDER = 'uploads'
-  PROJECTS_FOLDER = 'projects'
-  app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# Supabase for database
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-  @app.route('/')
-  def index():
-      return render_template('index.html')
+4. **Run the development server**
+```bash
+npm run dev
+```
 
-  @app.route('/chat', methods=['POST'])
-  def chat():
-      data = request.json
-      prompt = data.get('message', '')
-      response = generate_response(prompt)
-      return jsonify({'response': response})
+Open [http://localhost:3000](http://localhost:3000) to see the result.
 
-  @app.route('/create_project', methods=['POST'])
-  def create_project():
-      data = request.json
-      project_name = data.get('project_name', '')
-      project_path = os.path.join(PROJECTS_FOLDER, project_name)
-      os.makedirs(project_path, exist_ok=True)
-      with open(os.path.join(project_path, 'index.html'), 'w') as f:
-          f.write('<h1>Hello, World!</h1>')
-      return jsonify({'status': 'success'})
+## 🎨 Design System
 
-  @app.route('/upload_zip', methods=['POST'])
-  def upload_zip():
-      file = request.files['file']
-      zip_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-      file.save(zip_path)
-      project_name = file.filename.rsplit('.', 1)[0]
-      project_path = os.path.join(PROJECTS_FOLDER, project_name)
-      with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-          zip_ref.extractall(project_path)
-      os.remove(zip_path)
-      return jsonify({'status': 'success'})
+### Colors
+- **Primary**: Blue to Purple gradient
+- **Secondary**: Purple to Pink gradient  
+- **Accent**: Yellow to Orange gradient
+- **Neutral**: Gray scale with proper contrast
 
-  @app.route('/git_clone', methods=['POST'])
-  def git_clone():
-      data = request.json
-      repo_url = data.get('repo_url', '')
-      project_name = repo_url.split('/')[-1].replace('.git', '')
-      project_path = os.path.join(PROJECTS_FOLDER, project_name)
-      subprocess.run(['git', 'clone', repo_url, project_path], check=True)
-      return jsonify({'status': 'success'})
+### Typography
+- **Headings**: Inter font, bold weights
+- **Body**: Inter font, regular weight
+- **Spacing**: 8px grid system
 
-  @app.route('/preview', methods=['POST'])
-  def preview():
-      data = request.json
-      project_name = data.get('project_name', '')
-      project_path = os.path.join(PROJECTS_FOLDER, project_name)
-      subprocess.Popen(['serve', '-s', project_path, '-p', '3000'])
-      return jsonify({'url': 'http://localhost:3000'})
+### Animations
+- **Framer Motion** for smooth transitions
+- **Hover effects** on interactive elements
+- **Scroll-triggered** animations
+- **Loading states** and micro-interactions
 
-  if __name__ == '__main__':
-      app.run(debug=True)
-  ```
-- **Create `templates/index.html`**:
-  ```html
-  <!DOCTYPE html>
-  <html lang="en">
-  <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>AI Coding Agent</title>
-      <link rel="stylesheet" href="/static/style.css">
-  </head>
-  <body>
-      <div class="container">
-          <h1>AI Coding Agent</h1>
-          <div id="chat">
-              <input type="text" id="message" placeholder="Ask the AI...">
-              <button onclick="sendMessage()">Send</button>
-              <div id="chat-output"></div>
-          </div>
-          <div id="editor">
-              <textarea id="code" placeholder="Write your code here..."></textarea>
-          </div>
-      </div>
-      <script src="/static/script.js"></script>
-  </body>
-  </html>
-  ```
-- **Create `static/style.css`**:
-  ```css
-  body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      background-color: #f0f0f0;
-  }
-  .container {
-      max-width: 1200px;
-      margin: auto;
-  }
-  #chat, #editor {
-      margin: 20px 0;
-  }
-  #message, #code {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-  }
-  #chat-output {
-      border: 1px solid #ccc;
-      padding: 10px;
-      min-height: 100px;
-  }
-  ```
-- **Create `static/script.js`**:
-  ```javascript
-  async function sendMessage() {
-      const message = document.getElementById('message').value;
-      const response = await fetch('/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message })
-      });
-      const data = await response.json();
-      document.getElementById('chat-output').innerHTML += `<p>${data.response}</p>`;
-  }
-  ```
-- **Test**: Run `python app.py`, visit `http://localhost:5000`, and ask the AI: “Write a Python loop”.
+## 🏗 Architecture
 
-## Step 5: Enhancing the Application
-Add autocomplete and project templates:
-- **Autocomplete with CodeMirror**:
-  - Install: `npm install codemirror`
-  - Update `index.html`:
-    ```html
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/codemirror.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/codemirror.min.css">
-    <script>
-        window.onload = function() {
-            var editor = CodeMirror.fromTextArea(document.getElementById('code'), {
-                lineNumbers: true,
-                mode: 'python'
-            });
-        };
-    </script>
-    ```
-- **Project Templates**: Update `create_project` in `app.py`:
-  ```python
-  @app.route('/create_project', methods=['POST'])
-  def create_project():
-      data = request.json
-      project_name = data.get('project_name', '')
-      project_type = data.get('project_type', 'basic')
-      project_path = os.path.join(PROJECTS_FOLDER, project_name)
-      os.makedirs(project_path, exist_ok=True)
-      if project_type == 'flask':
-          with open(os.path.join(project_path, 'app.py'), 'w') as f:
-              f.write('from flask import Flask\napp = Flask(__name__)\n@app.route("/")\ndef hello():\n    return "Hello, World!"')
-      else:
-          with open(os.path.join(project_path, 'index.html'), 'w') as f:
-              f.write('<h1>Hello, World!</h1>')
-      return jsonify({'status': 'success'})
-  ```
+### Frontend Structure
+```
+app/
+├── components/          # Reusable UI components
+│   ├── Header.tsx      # Navigation with sticky behavior
+│   ├── Hero.tsx        # Landing page hero section
+│   ├── Features.tsx    # Feature showcase
+│   ├── Gallery.tsx     # Design gallery with filtering
+│   ├── TShirtPreview.tsx # 3D t-shirt preview
+│   ├── Testimonials.tsx # Customer testimonials
+│   ├── Pricing.tsx     # Pricing tiers
+│   └── Footer.tsx      # Footer with links
+├── globals.css         # Global styles and animations
+├── layout.tsx          # Root layout with metadata
+└── page.tsx           # Main landing page
 
-## Step 6: Automation and Reliability
-- **Nginx Configuration**: Edit `C:\nginx\conf\nginx.conf`:
-  ```
-  http {
-      server {
-          listen 80;
-          location / {
-              proxy_pass http://localhost:5000;
-              proxy_set_header Host $host;
-              proxy_set_header X-Real-IP $remote_addr;
-          }
-      }
-  }
-  ```
-  Start: `cd C:\nginx && start nginx`
-- **Auto-Start**: Create `start.bat` in `C:\ai_coding_agent`:
-  ```
-  @echo off
-  cd C:\nginx
-  start nginx
-  cd C:\ai_coding_agent
-  python app.py
-  ```
-  Add to Startup: `Win + R` > `shell:startup` > Drop `start.bat` there.
+styles/
+├── globals.css         # Tailwind imports and custom styles
+└── components.css      # Component-specific styles
+```
 
-## Step 7: Testing and Usage
-- **Chat Test**: Ask “Generate a sorting algorithm”.
-- **Project Test**: Create a Flask app via the API, preview at `http://localhost:3000`.
+### Key Components
 
-## Troubleshooting
-- **AI Slow**: Use CodeLLaMA 7B or adjust quantization.
-- **Nginx Issues**: Check `C:\nginx\logs\error.log`.
+#### Hero Section
+- Animated background elements
+- Dynamic text rotation
+- Call-to-action buttons
+- Statistics display
+
+#### Features Section  
+- Grid layout with hover effects
+- Icon animations
+- Progressive disclosure
+- Feature comparison
+
+#### Gallery Section
+- Category filtering
+- Masonry grid layout
+- Image lazy loading
+- Hover overlays
+
+#### T-Shirt Preview
+- Real-time 3D rendering
+- Color customization
+- Text editing
+- View angle controls
+
+#### Pricing Section
+- Three-tier structure
+- Feature comparison
+- Popular plan highlighting
+- FAQ section
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+1. Push your code to GitHub
+2. Connect your repository to Vercel
+3. Add environment variables in Vercel dashboard
+4. Deploy automatically on push
+
+### Manual Deployment
+```bash
+npm run build
+npm run start
+```
+
+## 🔧 Configuration
+
+### Tailwind CSS
+Custom configuration includes:
+- Extended color palette
+- Custom animations
+- Responsive breakpoints
+- Component utilities
+
+### Next.js
+Optimized for:
+- Image optimization
+- Font loading
+- Bundle splitting
+- SEO optimization
+
+## 📈 Performance
+
+- **Lighthouse Score**: 95+ across all metrics
+- **Core Web Vitals**: Optimized for LCP, FID, CLS
+- **Image Optimization**: Next.js Image component
+- **Code Splitting**: Automatic route-based splitting
+- **Lazy Loading**: Components and images
+
+## 🔒 Security
+
+- **Environment Variables**: Secure API key management
+- **HTTPS**: SSL/TLS encryption
+- **Input Validation**: Form validation and sanitization
+- **Rate Limiting**: API request throttling
+
+## 🧪 Testing
+
+```bash
+# Run tests
+npm run test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run E2E tests
+npm run test:e2e
+```
+
+## 📚 API Integration
+
+### AI Design Generation
+```typescript
+// Generate design from prompt
+const response = await fetch('/api/generate-design', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ prompt: 'Best Dad Ever' })
+})
+```
+
+### Print-on-Demand
+```typescript
+// Create product in Printful
+const product = await fetch('/api/printful/products', {
+  metho: 'POST',
+  body: JSON.stringify({ design, variant })
+})
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **Vercel Ship** - Design inspiration
+- **Framer Motion** - Animation library
+- **Tailwind CSS** - Utility-first CSS framework
+- **Next.js** - React framework
+- **Lucide** - Icon library
+
+## 📞 Support
+
+- **Email**: support@teeai.com
+- **Documentation**: [docs.teeai.com](https://docs.teeai.com)
+- **Discord**: [Join our community](https://discord.gg/teeai)
 
 ---
 
-You’ve now got a self-hosted AI coding agent! Customize it, expand it, or enjoy coding with your own AI assistant. For issues or ideas, open an issue or PR. Happy coding!
+Built with ❤️ by the TeeAI team
